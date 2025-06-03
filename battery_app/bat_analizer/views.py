@@ -7,7 +7,7 @@ from flask import render_template, request, Blueprint, session, flash, redirect,
 from flask_admin.form import rules
 from wtforms import PasswordField
 from flask_admin.contrib.sqla import ModelView
-from machine_learning.ML_models import logistic_regression_models as models
+from machine_learning.ML_classes import log_reg_model
 from flask_admin import AdminIndexView
 from battery_app import mail
 from flask_mail import Message
@@ -52,6 +52,7 @@ def register():
       else:
            battery.parameters = Parameters(0, 50, 'c')
       mqtt.subscribe(f'{mqtt.username}/groups/{serial_number}', qos=1)
+      log_reg_model.train(battery.parameters.bat_type)
       db.session.commit()
       message = Message(f"New user {user.username} is registrated",recipients=['gorobchenkotatyana16@gmail.com'])
       mail.send(message)
@@ -100,15 +101,14 @@ def user_page(id):
        messege = "Your battery must be changed"
        img = ""
     else:
-        index = db.query(Battery.parameters.bat_type).where(Battery.user_id == id)
-        model = models[index][1]
-        last_cycle_data = model.predict(id)
+        last_cycle_data = log_reg_model.predict(id)
         text = (f"The last cycle number: {last_cycle_data[0]}."
                 f"The last cycle date: {last_cycle_data[1]}")
         result = last_cycle_data[2]
         if result:
             messege = "Your battery must be changed"
             img = ""
+            mqtt.unsubscribe()
         else:
             messege = "Your battery current state is OK"
             img = ""
