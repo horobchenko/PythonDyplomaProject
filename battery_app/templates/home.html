@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block container %}
+ <h1>_Welcome to Battery Analizer</h1>
+ {% if session.username %}
+ <h3>Hey {{ session.username }}!!</h3>
+ <h3>{{ date|cycle}}</h3>
+ <a href="{{ url_for('user.logout') }}">Click here to logout</a>
+ {% else %}
+ Click here to <a href="{{ url_for('user.login') }}">login</a> or <a
+ href="{{ url_for('user.register') }}">register</a>
+ <a href="{{ url_for('articles.articles') }}"
+    id="article_link">Click here to see the articles</a>
+ {% endblock %}
+ {% block scripts %}
+ <script>
+ $(document).ready(function(){
+  $.getJSON("/home", function(data) {
+    $('#article_link').append('<span class="badge">' +
+      data.count + '</span>');
+  });
+ });
+ </script>
+ {% endif %}
+{% endblock %}

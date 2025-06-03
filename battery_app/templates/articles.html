@@ -1,0 +1,27 @@
+ {% extends 'home.html' %}
+ {% block container %}
+  <div class="top-pad">
+    {% for article in articles.items %}
+      <div class="well">
+        <h2>
+          <a href="{{ url_for('articles.article', id=article.id) }}">{{ article.title }}</a>
+          <small>$ {{ article.text }}</small>
+        </h2>
+      </div>
+    {% endfor %}
+    {% if articles.has_prev %}
+      <a href="{{ url_for(request.endpoint, page=articles.prev_num) }}">
+        {{"<< Previous Page"}}
+      </a>
+    {% else %}
+      {{"<< Previous Page"}}
+{% endif %} |
+    {% if articles.has_next %}
+      <a href="{{ url_for(request.endpoint, page=articles.next_num) }}">
+        {{"Next page >>"}}
+      </a>
+    {% else %}
+      {{"Next page >>"}}
+    {% endif %}
+  </div>
+ {% endblock %}
