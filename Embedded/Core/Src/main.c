@@ -51,6 +51,7 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
+char payload = [100];
 static const char serial_number = "a_111";
 static int cycle = -1;
 extern FontDef_t Font_7x10;
@@ -464,7 +465,7 @@ static void MX_GPIO_Init(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
  if(htim->Instance == TIM6){
-     voltage = ina219_read_bus_voltage(&ina);
+     voltage = ina219_read_bus_voltage();
 	 if (voltage == LEFT_VOLTAGE){
 		 start_time = HAL_GetTick();
 	 }
@@ -473,9 +474,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	 }
 	 if (start_time && finish_time){
 		 diff_time = finish_time - start_time;
-	     mqtt_do_publish(&client,&'time',&(const char *)diff_time);
-	     mqtt_do_publish(&client, &'cycle',&(const char *)cycle);
-	     ina219_deinit(&ina);
+		 sprintf(payload,(const char *)diff_time);
+	     mqtt_do_publish(client,&'time',payload);
+	     sprintf(payload,(const char *)cycle);
+	     mqtt_do_publish(client, &'cycle',payload);
+	     ina219_deinit();
 	     SSD1306_DeInit();
 	     break;
 	 }
