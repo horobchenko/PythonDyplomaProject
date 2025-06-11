@@ -9,7 +9,7 @@ from flask_admin.form import rules
 from wtforms import PasswordField
 from flask_admin.contrib.sqla import ModelView
 from machine_learning.classes import log_reg_model
-from flask_admin import AdminIndexView
+from flask_admin import AdminIndexView, Admin
 from battery_app import mail
 from flask_mail import Message
 
@@ -52,7 +52,7 @@ def register():
            battery.parameters = Parameters(0, 20, 'b')
       else:
            battery.parameters = Parameters(0, 50, 'c')
-      mqtt.subscribe(f'{mqtt.username}/groups/{serial_number}', qos=1)
+      mqtt.subscribe(f'{mqtt.username}/groups/{serial_number}', qos=0)
       log_reg_model.train(battery.parameters.bat_type)
       db.session.commit()
       message = Message(f"New user {user.username} is registrated",recipients=['gorobchenkotatyana16@gmail.com'])
@@ -74,7 +74,7 @@ def login():
       flash('Invalid username or password. Please try again.',
             'danger')
      return render_template('login.html', form=form)
-     session['username'] = username
+     db.session['username'] = username
      flash('You have successfully logged in.', 'success')
      return redirect(url_for('user.user_page'))
      if form.errors:
@@ -155,6 +155,8 @@ def chat_gpt():
 def page_not_found(e):
     return render_template('404.html'), 404
 
+
+
 class MyAdminIndexView(AdminIndexView):
     def is_accessible(self):
        return current_user.is_authenticated and current_user.is_admin()
@@ -201,6 +203,10 @@ class UserAdminView(ModelView):
         self.session.add(model)
         self._on_model_change(form, model, False)
         self.session.commit()
+
+# admin object creation
+admin = Admin(app, index_view=MyAdminIndexView())
+admin.add_view(UserAdminView(User, db.session))
 
 if __name__ == '__main__':
     socketio.app.run(debug=True,allow_unsafe_werkzeug=True)

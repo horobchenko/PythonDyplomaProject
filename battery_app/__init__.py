@@ -10,9 +10,7 @@ from flask_migrate import Migrate
 from redis import Redis
 from flask_mqtt import Mqtt
 from flask_socketio import SocketIO
-from battery_app.bat_analizer import views as views
 from battery_app.bat_analizer.views import user, articles
-from elasticsearch import Elasticsearch
 from flask_mail import Mail
 
 
@@ -79,9 +77,7 @@ with app.app_context():
 #migration db creation
 migration = Migrate(app, db)
 
-# admin object creation
-admin = Admin(app, index_view=views.MyAdminIndexView())
-admin.add_view(views.UserAdminView(views.User, db.session))
+
 
 #blueprints registration
 app.register_blueprint(user)
