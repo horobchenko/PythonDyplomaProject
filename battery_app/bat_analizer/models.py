@@ -9,18 +9,15 @@ from wtforms import StringField, PasswordField
 from wtforms.validators import InputRequired, EqualTo
 
 
-
-
 class TableNameMixin:
-    ''' Міксин, що встановлює назву таблиці відповідно назві класу в нижньому регістрі'''
+    """ Міксин, що встановлює назву таблиці відповідно назві класу в нижньому регістрі"""
 
     @declared_attr.directive
     def __tablename__(cls) -> str:
         return cls.__name__.lower()
 
-
 class User(db.Model, TableNameMixin):
-    '''Клас користувача додатку'''
+    """Клас користувача додатку"""
 
     id = mapped_column(db.Integer, primary_key=True)
     username = mapped_column(db.String(50), unique=True)
@@ -47,17 +44,17 @@ class User(db.Model, TableNameMixin):
 
 @dataclasses.dataclass
 class Parameters:
-    '''Клас для параметрів батареї, що використовуються в розрахунках'''
+    """Клас для параметрів батареї, що використовуються в розрахунках"""
 
     min_temperature: int
     max_temperature: int
     bat_type: str
 
     def __repr__(self) -> str:
-        return f"Parameters( first_cycle={self.first_cycle!r}, last_cycle={self.last_cycle!r}, bat_type ={self.bat_type!r})"
+        return f"Parameters( min temp={self.min_temperature!r}, max tamp={self.max_temperature!r}, battery type ={self.bat_type!r})"
 
 class Battery(db.Model, TableNameMixin):
-    '''Клас акумулятора користувача'''
+    """Клас акумулятора користувача"""
 
     id = mapped_column(db.Integer, primary_key=True, autoincrement=True)
     serial_number: Mapped[int] = mapped_column(db.Integer)
@@ -70,11 +67,11 @@ class Battery(db.Model, TableNameMixin):
     stop_cycle = mapped_column(db.Integer, nullable=True)
 
     def __repr__(self) -> str:
-        return f"Battery(id={self.id!r}, cycle_data ={self.cycle_data!r}, time_data = {self.time_data!r}, stop_cycle ={self.stop_cycle!r})"
+        return f"Battery(id={self.id!r}, serial_number ={self.serial_number!r}, stop_cycle ={self.stop_cycle!r})"
 
 
 class Data(db.Model, TableNameMixin):
-    '''Клас для даних зардного циклу'''
+    """Клас для даних зардного циклу"""
 
     id: Mapped[int] = mapped_column(primary_key=True)
     cycle: Mapped[int] = mapped_column(nullable=True)
@@ -84,10 +81,10 @@ class Data(db.Model, TableNameMixin):
     bat_id: Mapped[int] = mapped_column(db.ForeignKey("battery.id"))
 
     def __repr__(self) -> str:
-        return f"Cycles(id={self.id!r}, cycle={self.cycle!r}, time={self.time!r}, timestamp = {self.timestamp!r} )"
+        return f"Data(id={self.id!r}, cycle={self.cycle!r}, time={self.time!r}, timestamp = {self.timestamp!r} )"
 
 class Article(db.Model, TableNameMixin):
-    '''Клас для статей'''
+    """Клас для статей"""
 
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(db.String)
@@ -103,12 +100,12 @@ class Article(db.Model, TableNameMixin):
 
 
 class RegistrationForm(FlaskForm):
- username = StringField('Username', [InputRequired()])
- password = PasswordField('Password', [InputRequired(), EqualTo('confirm',
- message='Passwords must match')])
- confirm = PasswordField('Confirm Password', [InputRequired()])
- serial_nimber = StringField('Serial_number', [InputRequired()])
+   username = StringField('Username', [InputRequired()])
+   password = PasswordField('Password', [InputRequired(), EqualTo('confirm',
+   message='Passwords must match')])
+   confirm = PasswordField('Confirm Password', [InputRequired()])
+   serial_number = StringField('Serial_number', [InputRequired()])
 
 class LoginForm(FlaskForm):
- username = StringField('Username', [InputRequired()])
- password = PasswordField('Password', [InputRequired()])
+   username = StringField('Username', [InputRequired()])
+   password = PasswordField('Password', [InputRequired()])

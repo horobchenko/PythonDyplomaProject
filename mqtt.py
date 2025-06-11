@@ -1,5 +1,5 @@
 from battery_app import mqtt, db, socketio
-from battery_app.bat_analizer import Data, Battery
+from battery_app.bat_analizer.models import Data, Battery
 
 @socketio.on('unsubscribe')
 def handle_unsubscribe():

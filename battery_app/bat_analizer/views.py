@@ -7,7 +7,7 @@ from flask import render_template, request, Blueprint, session, flash, redirect,
 from flask_admin.form import rules
 from wtforms import PasswordField
 from flask_admin.contrib.sqla import ModelView
-from machine_learning.ML_classes import log_reg_model
+from machine_learning.classes import log_reg_model
 from flask_admin import AdminIndexView
 from battery_app import mail
 from flask_mail import Message
@@ -29,7 +29,7 @@ def home():
 def register():
    if session.get('username'):
       flash('Your are already logged in.', 'info')
-      return redirect(url_for('user_blueprint.home'))
+      return redirect(url_for('user.home'))
    form = RegistrationForm()
    if form.validate_on_submit():
       username = request.form.get('username')
@@ -107,11 +107,11 @@ def user_page(id):
         result = last_cycle_data[2]
         if result:
             messege = "Your battery must be changed"
-            img = ""
+            img = "Battery_NO_OK"
             mqtt.unsubscribe()
         else:
             messege = "Your battery current state is OK"
-            img = ""
+            img = "Battery_OK"
     return render_template('user_page.html', text=text,
                            messege = messege,img = img)
 

@@ -1,5 +1,5 @@
 import os
-from battery_app import create_app, babel
+from battery_app import create_app, babel, db
 import unittest
 import tempfile
 
@@ -15,7 +15,7 @@ class HomeTestCase(unittest.TestCase):
        babel.init_app(self.app)
        with self.app.app_context():
            db.create_all()
-       self.app.register_blueprint(user_blueprint)
+       #self.app.register_blueprint(user)
        self.client = self.app.test_client()
 
     def tearDown(self):
