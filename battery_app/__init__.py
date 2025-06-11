@@ -16,12 +16,6 @@ from elasticsearch import Elasticsearch
 from flask_mail import Mail
 
 
-#elasticsearch instance
-es = Elasticsearch('https://192.168.1.6:9200/',
-                   ca_certs='C:\Users\gorob\elasticsearch-9.0.1/config/certs/http_ca.crt',
- verify_certs=False,basic_auth=("elastic", ''))
-es.indices.create(index='articls', ignore=400)
-
 
 #app monitoring with New relic
 newrelic.agent.initialize('newrelic.ini')
@@ -33,7 +27,7 @@ ALLOWED_LANGUAGES = {
 }
 
 #app instance creation
-app = Flask(__name__,  instance_path='C:/Users/gorob/PycharmProjects/PythonDyplomaProject/instance')
+app = Flask(__name__, instance_path='//instance')
 
 #configuration variabls
 app.config['DEBUG'] = True

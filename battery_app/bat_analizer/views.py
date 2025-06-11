@@ -1,7 +1,8 @@
 import openai
+from flask_login import login_required
 from sqlalchemy.sql.functions import current_user
 from werkzeug.security import generate_password_hash
-from battery_app import app, mqtt, redis, socketio, db, es
+from battery_app import app, mqtt, redis, socketio, db
 from battery_app.bat_analizer.models import User, Data, Article, Battery, RegistrationForm, Parameters, LoginForm
 from flask import render_template, request, Blueprint, session, flash, redirect, url_for, jsonify
 from flask_admin.form import rules
@@ -82,24 +83,21 @@ def login():
 
 
 @user.route('/logout')
+@login_required
 def logout():
  if 'username' in session:
      session.pop('username')
      flash('You have successfully logged out.', 'success')
      return redirect(url_for('app.home'))
 
-@user.app_template_filter('date')
-def cycle_filter(date):
-    cycle = db.select(Data, User).where(Data.timestamp <=date and User.id is current_user).last()
-    return 'Номер останього зарядного циклу: {0}'.format(cycle)
-
 @user.route('/user_page/<id>')
+@login_required
 def user_page(id):
     stmt = db.select(Battery.stop_cycle).where(Battery.user_id==id)
     result = db.execute(stmt)
     if result:
        messege = "Your battery must be changed"
-       img = ""
+       img = "Battery_NO_OK"
     else:
         last_cycle_data = log_reg_model.predict(id)
         text = (f"The last cycle number: {last_cycle_data[0]}."
@@ -137,24 +135,9 @@ def recent_articles():
     articles = [redis.get(k).decode('utf-8') for k in keys_alive]
     return jsonify({'articles': articles})
 
-@articles.route('/article-create', methods=['GET','POST'])
-def create_product():
- #... normal product creation logic … #
-        title = ''
-        text =''
-        article = Article(title = title, text = text)
-        db.session.commit()
-        article.add_index_to_es()
- #... normal post product creation logic … #
-
-@articles.route('/article-search-es')
-def product_search_es(page=1):
-    q = request.args.get('q')
-    articles = es.search(index="articles", query={"query_string": {"query": '*' + q + '*'}})
-    return articles['hits']
-
 
 @user.route('/chat', methods=['GET', 'POST'])
+@login_required
 def chat_gpt():
   if request.method == 'POST':
       msg = request.form.get('msg')

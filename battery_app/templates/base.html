@@ -4,7 +4,7 @@
    <meta charset="utf-8">
    <meta http-equiv="X-UA-Compatible" content="IE=edge">
    <meta name="viewport" content="width=device-width, initial-scale=1">
- <title>Flask Framework Cookbook</title>
+ <title>Battery App</title>
   <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}"
  rel="stylesheet"><link href="{{ url_for('static',filename='css/main.css') }}" rel="stylesheet">
  <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
@@ -14,12 +14,12 @@
    role="navigation">
     <div class="container">
      <div class="navbar-header">
-       <a class="navbar-brand" href="{{ url_for('user.index') }}">Особистий кабінет</a>
-         <p>Поточна дата: {{ momentjs(timestamp).calendar() }}</p>
+       <a class="navbar-brand" href="{{ url_for('user.user_page') }}">Personal Page</a>
+         <p>Current date: {{ momentjs(timestamp).calendar() }}</p>
          <br/>
-         <p>Час: {{momentjs(timestamp).format('YYYY-MM-DD HH:mm:ss')}}</p>
+         <p>Time: {{momentjs(timestamp).format('YYYY-MM-DD HH:mm:ss')}}</p>
          <br/>
-         <p>Минуло: {{momentjs(timestamp).fromNow()}}</p>
+         <p>Last: {{momentjs(timestamp).fromNow()}}</p>
      </div>
   </div>
  </nav>

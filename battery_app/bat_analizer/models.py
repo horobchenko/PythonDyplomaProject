@@ -2,7 +2,7 @@ import dataclasses
 from datetime import datetime
 from typing import List
 from sqlalchemy.orm import mapped_column, declared_attr, Mapped, composite
-from battery_app import db, es
+from battery_app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
@@ -90,10 +90,6 @@ class Article(db.Model, TableNameMixin):
     title: Mapped[str] = mapped_column(db.String)
     text: Mapped[str] = mapped_column(db.String)
     timestamp: Mapped[datetime]
-
-    def add_index_to_es(self):
-        es.index(index='articles', document={'title': self.name}, id=self.id)
-        es.indices.refresh(index='articles')
 
     def __repr__(self) -> str:
         return f"Article(id={self.id!r}, title={self.title!r},  timestamp = {self.timestamp!r} )"

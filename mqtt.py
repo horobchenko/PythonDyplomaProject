@@ -1,3 +1,4 @@
+from sqlalchemy import func, insert
 from battery_app import mqtt, db, socketio
 from battery_app.bat_analizer.models import Data, Battery
 
@@ -12,7 +13,7 @@ def handle_mqtt_message(client, userdata, message):
     time = 0
     data = dict(topic=message.topic, payload=message.payload.decode())
     socketio.emit('mqtt_message', data=data)
-    print(f'Дані {data.items()}')
+    print(f'Data {data.items()}')
     serial_number = data.get("topic")
     serial_number = serial_number.rsplit('/')
     serial_number = serial_number[2]
@@ -22,16 +23,19 @@ def handle_mqtt_message(client, userdata, message):
         if word == 'time':
             if (str.isdigit(payload)):
                 time = int(word)
-                print(data)
+                print(time)
         elif word == 'cycle':
             if (str.isdigit(payload)):
                 cycle = int(word)
-                print(data)
+                print(cycle)
         else:
             print("No data")
-    bat_id = db.select(Battery.id).where(Battery.serial_number==serial_number)
-    data = Data(time = time, cycle= cycle, bat_id = bat_id)
-    db.session.add(data)
+    stmt = db.select(Battery.id).where(Battery.serial_number==serial_number)
+    bat_id = db.session.execute(stmt)
+    db.session.execute(
+        insert(Data).values(timestamp=func.now()).execution_options(render_nulls=True),
+        {"time": time, "cycle": cycle, "bat_id": bat_id},
+    )
     db.session.flush()
     db.session.commit()
 
