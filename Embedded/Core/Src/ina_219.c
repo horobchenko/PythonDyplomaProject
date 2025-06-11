@@ -8,8 +8,9 @@
 #include "ina_219.h"
 
 extern I2C_HandleTypeDef hi2c1;
+static  ina219_handle_t ina;// ina219_handle_t structure instance
 
-void INA219_Init(ina219_handle_t *ina)
+void INA219_Init()
 {
 	ina->i2c_pointer = hi2c1;
 	ina->i2c_addr = INA219_ADDRESS_0;
@@ -23,7 +24,7 @@ else
 	}
 }
 
-HAL_StatusTypeDef ina219_read_reg(ina219_handle_t *ina, uint16_t reg, uint8_t *pData, uint16_t len) {
+HAL_StatusTypeDef ina219_read_reg(uint16_t reg, uint8_t *pData, uint16_t len) {
  HAL_StatusTypeDef returnValue;
  uint8_t addr[2];
 
@@ -42,7 +43,7 @@ HAL_StatusTypeDef ina219_read_reg(ina219_handle_t *ina, uint16_t reg, uint8_t *p
  return returnValue;
 }
 
-HAL_StatusTypeDef ina219_write_reg(ina219_handle_t *ina, uint16_t reg, uint8_t *pData, uint16_t len) {
+HAL_StatusTypeDef ina219_write_reg( uint16_t reg, uint8_t *pData, uint16_t len) {
 
  HAL_StatusTypeDef returnValue;
  uint8_t *data; // тимчасовий буфер для зберыгання адреси
@@ -69,7 +70,7 @@ HAL_StatusTypeDef ina219_write_reg(ina219_handle_t *ina, uint16_t reg, uint8_t *
   return HAL_OK;
  }
 
-float ina219_read_bus_voltage(ina219_handle_t *ina)
+float ina219_read_bus_voltage()
 {
 	uint8_t pData={};
 	ina219_read_reg(ina, INA219_REG_BUSVOLTAGE, pData, sizeof(pData));

@@ -34,7 +34,6 @@ class User(db.Model, TableNameMixin):
     def is_admin(self):
         return self.admin
 
-
     def __repr__(self) -> str:
          return f"User(id={self.id!r}, name={self.name!r}, battery={self.battery!r})"
 

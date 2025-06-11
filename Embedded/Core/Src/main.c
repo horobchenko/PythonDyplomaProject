@@ -55,7 +55,6 @@ static const char serial_number = "a_111";
 static int cycle = -1;
 extern FontDef_t Font_7x10;
 SSD1306_COLOR_t color = SSD1306_COLOR_WHITE;
-ina219_handle_t *ina;
 volatile float voltage={};
 size_t start_time = {};
 size_t finish_time = {};
@@ -133,8 +132,8 @@ int main(void)
   httpd_init();
   HAL_TIM_Base_Start_IT(&htim6);
   SSD1306_Init();
-  ina219_init(&ina);
-  *client = mqtt_client_new();
+  ina219_init();
+  client = mqtt_client_new();
   mqtt_do_connect(&client);
   cycle+=1;
   /* USER CODE END 2 */

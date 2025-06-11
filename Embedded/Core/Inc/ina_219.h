@@ -44,36 +44,33 @@ typedef struct {
     * @param  *address: INA219 adress
     *
     */
-void ina219_init(ina219_handle_t *ina);
+void ina219_init(void);
 /**
   * @brief  writing to device registers
-  * @param  *ina: pointer to device structure
   * @param  reg: register address
   * @param  *pData: pointer to data array
   * @param  len: lenth of data array
   */
-HAL_StatusTypeDef ina219_write_reg(ina219_handle_t *ina, uint16_t reg, uint8_t *pData, uint16_t len);
+HAL_StatusTypeDef ina219_write_reg(uint16_t reg, uint8_t *pData, uint16_t len);
 /**
   * @brief  reading from device registers
-  * @param  *ina: pointer to device structure
   * @param  reg: register address
   * @param  *pData: pointer to data array
   * @param  len: lenth of data array
   *
   */
-HAL_StatusTypeDef ina219_read_reg(ina219_handle_t *ina, uint16_t reg, uint8_t *pData, uint16_t len);
+HAL_StatusTypeDef ina219_read_reg(uint16_t reg, uint8_t *pData, uint16_t len);
 /**
   * @brief  reading voltage data
-  * @param  *ina: pointer to device structure
   * @retval voltage
   *
   */
-float ina219_read_bus_voltage(ina219_handle_t *ina);
+float ina219_read_bus_voltage(void);
 /**
   * @brief  deinitialisation of device
   * @param  *ina: pointer to device structure
   *
   */
-void ina219_deinit(ina219_handle_t *ina );
+void ina219_deinit(void );
 
 #endif /* INC_INA_219_H_ */
