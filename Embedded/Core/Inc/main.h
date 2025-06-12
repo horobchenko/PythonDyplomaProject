@@ -31,10 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "ina_219.h"
-#include "oled.h"
-#include "lwip_mqtt.h"
-#include "fonts.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

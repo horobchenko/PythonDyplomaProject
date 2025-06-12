@@ -22,7 +22,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "ina_219.h"
+#include "oled.h"
+#include "lwip_mqtt.h"
+#include "fonts.h"
 
 /* USER CODE END Includes */
 
@@ -45,29 +48,29 @@
 /* Private variables ---------------------------------------------------------*/
 
 I2C_HandleTypeDef hi2c1;
+
 SPI_HandleTypeDef hspi1;
+
 TIM_HandleTypeDef htim6;
+
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
-char payload = [100];
-static const char serial_number = "a_111";
 static int cycle = -1;
 extern FontDef_t Font_7x10;
-SSD1306_COLOR_t color = SSD1306_COLOR_WHITE;
 volatile float voltage={};
 size_t start_time = {};
 size_t finish_time = {};
 size_t diff_time = {};
-
+mqtt_client_t *client;
+//mqtt_client_t static_client;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MPU_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
@@ -122,7 +125,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_I2C1_Init();
   MX_SPI1_Init();
   MX_USART2_UART_Init();
@@ -135,7 +137,6 @@ int main(void)
   SSD1306_Init();
   ina219_init();
   client = mqtt_client_new();
-  mqtt_do_connect(&client);
   cycle+=1;
   /* USER CODE END 2 */
 
@@ -399,26 +400,6 @@ static void MX_USART3_UART_Init(void)
 }
 
 /**
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void)
-{
-
-  /* DMA controller clock enable */
-  __HAL_RCC_DMA1_CLK_ENABLE();
-  __HAL_RCC_DMA2_CLK_ENABLE();
-
-  /* DMA interrupt init */
-  /* DMA1_Stream0_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
-  /* DMA2_Stream3_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -474,13 +455,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	 }
 	 if (start_time && finish_time){
 		 diff_time = finish_time - start_time;
-		 sprintf(payload,(const char *)diff_time);
-	     mqtt_do_publish(client,&'time',payload);
-	     sprintf(payload,(const char *)cycle);
-	     mqtt_do_publish(client, &'cycle',payload);
-	     ina219_deinit();
-	     SSD1306_DeInit();
-	     break;
+		 mqtt_do_connect(client, 'time');
+	     mqtt_do_publish(client,(const char *)diff_time, 'time');
+	     mqtt_do_connect(client, 'cycle');
+	     mqtt_do_publish(client,(const char *)cycle, 'cycle');
+
 	 }
  }
 }

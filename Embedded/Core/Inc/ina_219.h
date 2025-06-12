@@ -29,12 +29,6 @@
 
 #define INA219_ADDRESS_0                        (0x40 << 1)       /**< A0 = GND, A1 = GND */
 
-// INA219 structure
-
-typedef struct {
-	I2C_HandleTypeDef *i2c;
-	uint8_t address;
-} ina219_handle_t;
 
 
 // Functions
@@ -47,21 +41,24 @@ typedef struct {
 void ina219_init(void);
 /**
   * @brief  writing to device registers
+  * @param  *ina: pointer to device structure
   * @param  reg: register address
   * @param  *pData: pointer to data array
   * @param  len: lenth of data array
   */
-HAL_StatusTypeDef ina219_write_reg(uint16_t reg, uint8_t *pData, uint16_t len);
+HAL_StatusTypeDef ina219_write_reg( uint16_t reg, uint8_t *pData, uint16_t len);
 /**
   * @brief  reading from device registers
+  * @param  *ina: pointer to device structure
   * @param  reg: register address
   * @param  *pData: pointer to data array
   * @param  len: lenth of data array
   *
   */
-HAL_StatusTypeDef ina219_read_reg(uint16_t reg, uint8_t *pData, uint16_t len);
+HAL_StatusTypeDef ina219_read_reg( uint16_t reg, uint8_t *pData, uint16_t len);
 /**
   * @brief  reading voltage data
+  * @param  *ina: pointer to device structure
   * @retval voltage
   *
   */
@@ -71,6 +68,6 @@ float ina219_read_bus_voltage(void);
   * @param  *ina: pointer to device structure
   *
   */
-void ina219_deinit(void );
+void ina219_deinit(void);
 
 #endif /* INC_INA_219_H_ */

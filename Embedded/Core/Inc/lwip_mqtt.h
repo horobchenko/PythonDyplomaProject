@@ -18,7 +18,7 @@
 
   *
   */
-void mqtt_do_connect(mqtt_client_t *client);
+void mqtt_do_connect(mqtt_client_t *client, const char *topic);
 /**
   * @brief  reading from device registers
   * @param  *ina: pointer to device structure
@@ -35,7 +35,7 @@ void mqtt_connection_cb(mqtt_client_t *client, void *arg, mqtt_connection_status
   * @param  len: lenth of data array
   *
   */
-void mqtt_do_publish(mqtt_client_t *client, void *arg);
+void mqtt_do_publish(mqtt_client_t *client, void *arg, const char topic);
 /**
   * @brief  reading from device registers
   * @param  *ina: pointer to device structure

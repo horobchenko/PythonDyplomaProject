@@ -13,17 +13,17 @@ extern SPI_HandleTypeDef hspi1;
 static SSD1306_t SSD1306;//SSD1306_t structure instance
 static uint8_t SSD1306_Buffer[SSD1306_WIDTH * SSD1306_HEIGHT / 8] = {};//SSD1306 data buffer
 
-void SSD1306_WriteCmd(uint8_t *command)
+void SSD1306_WriteCmd(uint8_t command)
 {
 	SSD1306_CMD_MODE();
-    HAL_SPI_Transmit_IT(&hspi1, uint8_t &command, sizeof(command), SSD1306_SPI_TIMEOUT);
+    HAL_SPI_Transmit_IT(&hspi1, &command, sizeof(command));
 
 }
 
 void SSD1306_WriteData(uint8_t data)
 {
 	SSD1306_DATA_MODE();
-	HAL_SPI_Transmit_IT(&hspi1, uint8_t &command, sizeof(command), SSD1306_SPI_TIMEOUT);
+	HAL_SPI_Transmit_IT(&hspi1, &data, sizeof(data));
 }
 
 
@@ -57,7 +57,7 @@ uint8_t SSD1306_Init(void){
 	SSD1306_WriteCmd(SCROLL_DISABLE);
 
 	/* Clear screen */
-	SSD1306_ClearScreen();
+	SSD1306_ClearScreen(SSD1306_COLOR_BLACK);
 
 	/* Update screen */
 	SSD1306_UpdateScreen();
@@ -106,12 +106,12 @@ void SSD1306_ResetDisplay(){
 
 }
 
-void SSD1306_UpdateScreen(void){
+void SSD1306_UpdateScreen(){
 
 	SSD1306_WriteData(SSD1306_Buffer);
 }
 
-SSD1306_ClearScreen(void){
+SSD1306_ClearScreen(SSD1306_COLOR_t color){
 	memset(SSD1306_Buffer, (color == SSD1306_COLOR_BLACK) ? 0x00 : 0xFF, sizeof(SSD1306_Buffer));
 }
 

@@ -8,15 +8,13 @@
 #include "ina_219.h"
 
 extern I2C_HandleTypeDef hi2c1;
-static  ina219_handle_t ina;// ina219_handle_t structure instance
 
-void INA219_Init()
+void ina219_init()
 {
-	ina->i2c_pointer = hi2c1;
-	ina->i2c_addr = INA219_ADDRESS_0;
- if(HAL_I2C_IsDeviceReady(i2c, adress, 3, 2)==HAL_OK)
+
+ if(HAL_I2C_IsDeviceReady(&hi2c1, INA219_ADDRESS_0, 3, 2)==HAL_OK)
 	{
-	 ina219_write_reg(ina,INA219_REG_CONFIG, INA219_REG_CONFIG_RUN_VALUE, sizeof(INA219_REG_CONFIG_RUN_VALUE));
+	 ina219_write_reg(INA219_REG_CONFIG, INA219_REG_CONFIG_RUN_VALUE, sizeof(INA219_REG_CONFIG_RUN_VALUE));
 	}
 else
 	{
@@ -33,12 +31,12 @@ HAL_StatusTypeDef ina219_read_reg(uint16_t reg, uint8_t *pData, uint16_t len) {
  addr[1] = (uint8_t) (reg & 0xFF);
 
  /* Відправляємо адресу, звідки починається зчитування */
- returnValue = HAL_I2C_Master_Transmit(ina->i2c_pointer, ina->i2c_addr, addr, 2, HAL_MAX_DELAY);
+ returnValue = HAL_I2C_Master_Transmit( &hi2c1, INA219_ADDRESS_0, addr, 2, HAL_MAX_DELAY);
  if(returnValue != HAL_OK)
  return returnValue;
 
  /* Отримання даних */
- returnValue = HAL_I2C_Master_Receive(ina->i2c_pointer, ina->i2c_addr, pData, len, HAL_MAX_DELAY);
+ returnValue = HAL_I2C_Master_Receive(&hi2c1, INA219_ADDRESS_0, pData, len, HAL_MAX_DELAY);
 
  return returnValue;
 }
@@ -58,14 +56,14 @@ HAL_StatusTypeDef ina219_write_reg( uint16_t reg, uint8_t *pData, uint16_t len) 
   memcpy(data+2, pData, len);
 
   /* Передача даних */
-  returnValue = HAL_I2C_Master_Transmit(ina->i2c_pointer, ina->i2c_addr, data, len + 2, HAL_MAX_DELAY);
+  returnValue = HAL_I2C_Master_Transmit(&hi2c1, INA219_ADDRESS_0, data, len + 2, HAL_MAX_DELAY);
   if(returnValue != HAL_OK)
   return returnValue;
 
   free(data);//очищення буфера
 
   /* Очікування збереження даних */
-  while(HAL_I2C_Master_Transmit(ina->i2c_pointer, ina->i2c_addr, 0, 0, HAL_MAX_DELAY) != HAL_OK);
+  while(HAL_I2C_Master_Transmit(&hi2c1, INA219_ADDRESS_0, 0, 0, HAL_MAX_DELAY) != HAL_OK);
 
   return HAL_OK;
  }
@@ -73,7 +71,7 @@ HAL_StatusTypeDef ina219_write_reg( uint16_t reg, uint8_t *pData, uint16_t len) 
 float ina219_read_bus_voltage()
 {
 	uint8_t pData={};
-	ina219_read_reg(ina, INA219_REG_BUSVOLTAGE, pData, sizeof(pData));
+	ina219_read_reg(INA219_REG_BUSVOLTAGE, pData, sizeof(pData));
 	float bus_voltage = (float)(pData<<3) * 0.004;
 	return bus_voltage;
 }

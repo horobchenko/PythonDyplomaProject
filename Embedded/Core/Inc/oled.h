@@ -140,12 +140,12 @@ typedef enum {
   /**
  * @brief  updating RAM buffer
  */
-  uint8_t SSD1306_UpdateScreen(void);
+  void SSD1306_UpdateScreen(void);
 
   /**
  * @brief  removing data on screen
  */
-  void SSD1306_ClearScreen(void);
+  void SSD1306_ClearScreen(SSD1306_COLOR_t color);
 
 
   /**
