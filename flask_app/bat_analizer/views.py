@@ -1,23 +1,24 @@
 import openai
 from flask_login import login_required
-from sqlalchemy.sql.functions import current_user
-from werkzeug.security import generate_password_hash
-from battery_app import app, mqtt, redis, socketio, db
-from battery_app.bat_analizer.models import User, Data, Article, Battery, RegistrationForm, Parameters, LoginForm
+from sqlalchemy.sql.functions import current_user, func
 from flask import render_template, request, Blueprint, session, flash, redirect, url_for, jsonify
 from flask_admin.form import rules
-from wtforms import PasswordField
 from flask_admin.contrib.sqla import ModelView
-from machine_learning.classes import log_reg_model
 from flask_admin import AdminIndexView, Admin
-from battery_app import mail
 from flask_mail import Message
+import os
+from models import *
+from flask_app.battery_app import *
+from sqlalchemy import insert
 
+#blueprints registration
 user = Blueprint('user', __name__)
 articles = Blueprint('articles', __name__)
+#app.register_blueprint(user)
+#app.register_blueprint (articles)
 
-@app.route('/')
-@app.route('/home')
+
+@user.route('/')
 def home():
     if request.headers.get("X-Requested-With") =="XMLHttpRequest":
         articles = Article.query.all()
@@ -73,12 +74,11 @@ def login():
      if not (existing_user and existing_user.check_password(password)):
       flash('Invalid username or password. Please try again.',
             'danger')
-     return render_template('login.html', form=form)
      db.session['username'] = username
      flash('You have successfully logged in.', 'success')
      return redirect(url_for('user.user_page'))
      if form.errors:
-      flash(form.errors, 'danger')
+       flash(form.errors, 'danger')
      return render_template('login.html', form=form)
 
 
@@ -95,6 +95,7 @@ def logout():
 def user_page(id):
     stmt = db.select(Battery.stop_cycle).where(Battery.user_id==id)
     result = db.execute(stmt)
+    text = ''
     if result:
        messege = "Your battery must be changed"
        img = "Battery_NO_OK"
@@ -113,21 +114,20 @@ def user_page(id):
     return render_template('user_page.html', text=text,
                            messege = messege,img = img)
 
-@articles.route('/articles')
 @articles.route('/articles/<int:page>')
-def articles(page=1):
+def all_articles(page=1):
     articles = Article.query.paginate(page, 10)
     return render_template('articles.html',articles=articles)
 
 
 @articles.route('/articles/<id>')
-def articles(id):
+def article(id):
     article = Article.query.get_or_404(id)
     article_key = 'article-%s' % article.id
     redis.set(article_key, article.title)
     redis.expire(article_key, 600)
-    #return 'Article - %s \n %s' % (article.title, article.text)
-    return render_template('article.html', article=article)
+    return 'Article - %s \n %s' % (article.title, article.text)
+    #return render_template('article.html', article=article)
 
 @articles.route('/recent-articles')
 def recent_articles():
@@ -141,7 +141,7 @@ def recent_articles():
 def chat_gpt():
   if request.method == 'POST':
       msg = request.form.get('msg')
-      openai.api_key = app.config['OPENAI_KEY']
+      openai.api_key = ''
       messages = [{"role": "system",
                    "content": "You are a helpful chat assistant for a electric car managment app"},
                   {"role": "user","content": msg}]
@@ -150,8 +150,7 @@ def chat_gpt():
   return render_template('chat.html')
 
 
-
-@app.errorhandler(404)
+@user.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
 
@@ -160,7 +159,6 @@ def page_not_found(e):
 class MyAdminIndexView(AdminIndexView):
     def is_accessible(self):
        return current_user.is_authenticated and current_user.is_admin()
-
 
 class UserAdminView(ModelView):
     form_edit_rules = (
@@ -208,6 +206,77 @@ class UserAdminView(ModelView):
 admin = Admin(app, index_view=MyAdminIndexView())
 admin.add_view(UserAdminView(User, db.session))
 
+##########mqtt##########3
+@socketio.on('unsubscribe')
+def handle_unsubscribe():
+    mqtt.unsubscribe()
+    print('Unsubscribe!')
+
+@mqtt.on_message()
+def handle_mqtt_message(client, userdata, message):
+    cycle = 0
+    time = 0
+    data = dict(topic=message.topic, payload=message.payload.decode())
+    socketio.emit('mqtt_message', data=data)
+    print(f'Data {data.items()}')
+    serial_number = data.get("topic")
+    serial_number = serial_number.rsplit('/')
+    serial_number = serial_number[2]
+    payload = data.get("payload")
+    payload = payload.rsplit('"')
+    for word in payload:
+        if word == 'time':
+            if (str.isdigit(payload)):
+                time = int(word)
+                print(time)
+        elif word == 'cycle':
+            if (str.isdigit(payload)):
+                cycle = int(word)
+                print(cycle)
+        else:
+            print("No data")
+    stmt = db.select(Battery.id).where(Battery.serial_number==serial_number)
+    bat_id = db.session.execute(stmt)
+    db.session.execute(
+        insert(Data).values(timestamp=func.now()).execution_options(render_nulls=True),
+        {"time": time, "cycle": cycle, "bat_id": bat_id},
+    )
+    db.session.flush()
+    db.session.commit()
+
+
+@mqtt.on_log()
+def handle_logging(client, userdata, level, buf):
+    print(level, buf)
+#############################app run###########33
+#app factory
+def create_app(alt_config={}):
+    app = Flask(__name__, template_folder=alt_config.get('TEMPLATE_FOLDER', 'templates'))
+    app.config['UPLOAD_FOLDER'] = os.path.realpath('') + '/battery_app/static/uploads'
+    app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:////tmp/test.db'
+    app.config['WTF_CSRF_SECRET_KEY'] = 'random key for form'
+    app.config['LOG_FILE'] = 'application.log'
+    app.config.update(alt_config)
+    if not app.debug:
+        import logging
+        from logging import FileHandler, Formatter
+        from logging.handlers import SMTPHandler
+        file_handler = FileHandler(app.config['LOG_FILE'])
+        app.logger.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+        file_handler.setFormatter(Formatter('%(asctime)s %(levelname)s:%(message)s ''[in %(pathname)s:%(lineno)d]'))
+        app.secret_key = 'some_random_key'
+    return app
+
+def create_db(app):
+    db.init_app(app)
+    with app.app_context():
+       db.create_all()
+       return db
+
 if __name__ == '__main__':
-    socketio.app.run(debug=True,allow_unsafe_werkzeug=True)
+    socketio.run(app, host='127.0.0.1',port=54238 , debug=True,allow_unsafe_werkzeug=True)
+
+
+
 

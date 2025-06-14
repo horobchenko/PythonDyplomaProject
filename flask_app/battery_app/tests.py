@@ -1,5 +1,5 @@
 import os
-from battery_app import create_app, babel, db
+from flask_app.battery_app import create_app, babel, db
 import unittest
 import tempfile
 
