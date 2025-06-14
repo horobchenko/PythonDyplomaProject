@@ -17,6 +17,9 @@ articles = Blueprint('articles', __name__)
 #app.register_blueprint(user)
 #app.register_blueprint (articles)
 
+@app.route('/')
+def index():
+    return render_template('home.html')
 
 @user.route('/')
 def home():
@@ -274,8 +277,7 @@ def create_db(app):
        db.create_all()
        return db
 
-if __name__ == '__main__':
-    socketio.run(app, host='127.0.0.1',port=54238 , debug=True,allow_unsafe_werkzeug=True)
+
 
 
 
