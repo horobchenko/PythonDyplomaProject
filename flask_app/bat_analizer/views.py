@@ -7,21 +7,20 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin import AdminIndexView, Admin
 from flask_mail import Message
 import os
-from models import *
+from flask_app.bat_analizer.models import *
 from flask_app.battery_app import *
 from sqlalchemy import insert
 
 #blueprints registration
 user = Blueprint('user', __name__)
 articles = Blueprint('articles', __name__)
-#app.register_blueprint(user)
-#app.register_blueprint (articles)
+
 
 @app.route('/')
 def index():
-    return render_template('home.html')
+    return "Hello"
 
-@user.route('/')
+@app.route('/home')
 def home():
     if request.headers.get("X-Requested-With") =="XMLHttpRequest":
         articles = Article.query.all()
@@ -30,7 +29,8 @@ def home():
         })
     return render_template('home.html')
 
-@user.route('/register', methods=['GET', 'POST'])
+
+@app.route('/register', methods=['GET', 'POST'])
 def register():
    if session.get('username'):
       flash('Your are already logged in.', 'info')
@@ -67,7 +67,7 @@ def register():
           flash(form.errors, 'danger')
    return render_template('register.html', form=form)
 
-@user.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
  form = LoginForm()
  if form.validate_on_submit():
@@ -85,7 +85,7 @@ def login():
      return render_template('login.html', form=form)
 
 
-@user.route('/logout')
+@app.route('/logout')
 @login_required
 def logout():
  if 'username' in session:
@@ -93,7 +93,7 @@ def logout():
      flash('You have successfully logged out.', 'success')
      return redirect(url_for('app.home'))
 
-@user.route('/user_page/<id>')
+@app.route('/user_page/<id>')
 @login_required
 def user_page(id):
     stmt = db.select(Battery.stop_cycle).where(Battery.user_id==id)
@@ -101,29 +101,25 @@ def user_page(id):
     text = ''
     if result:
        messege = "Your battery must be changed"
-       img = "Battery_NO_OK"
+       #img = "Battery_NO_OK"
     else:
-        last_cycle_data = log_reg_model.predict(id)
-        text = (f"The last cycle number: {last_cycle_data[0]}."
-                f"The last cycle date: {last_cycle_data[1]}")
-        result = last_cycle_data[2]
+        result = log_reg_model.predict(id)
         if result:
             messege = "Your battery must be changed"
-            img = "Battery_NO_OK"
+            #img = "Battery_NO_OK"
             mqtt.unsubscribe()
         else:
             messege = "Your battery current state is OK"
-            img = "Battery_OK"
-    return render_template('user_page.html', text=text,
-                           messege = messege,img = img)
+            #img = "Battery_OK"
+    return render_template('user_page.html',messege = messege)
 
-@articles.route('/articles/<int:page>')
-def all_articles(page=1):
+@app.route('/articles/<int:page>')
+def articles(page=1):
     articles = Article.query.paginate(page, 10)
     return render_template('articles.html',articles=articles)
 
 
-@articles.route('/articles/<id>')
+@app.route('/articles/<id>')
 def article(id):
     article = Article.query.get_or_404(id)
     article_key = 'article-%s' % article.id
@@ -132,16 +128,16 @@ def article(id):
     return 'Article - %s \n %s' % (article.title, article.text)
     #return render_template('article.html', article=article)
 
-@articles.route('/recent-articles')
+@app.route('/recent-articles')
 def recent_articles():
     keys_alive = redis.keys('article-*')
     articles = [redis.get(k).decode('utf-8') for k in keys_alive]
     return jsonify({'articles': articles})
 
 
-@user.route('/chat', methods=['GET', 'POST'])
+@app.route('/chat', methods=['GET', 'POST'])
 @login_required
-def chat_gpt():
+def chat():
   if request.method == 'POST':
       msg = request.form.get('msg')
       openai.api_key = ''
@@ -153,7 +149,7 @@ def chat_gpt():
   return render_template('chat.html')
 
 
-@user.errorhandler(404)
+@app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
 
@@ -260,6 +256,8 @@ def create_app(alt_config={}):
     app.config['WTF_CSRF_SECRET_KEY'] = 'random key for form'
     app.config['LOG_FILE'] = 'application.log'
     app.config.update(alt_config)
+    app.register_blueprint(user)
+    app.register_blueprint (articles)
     if not app.debug:
         import logging
         from logging import FileHandler, Formatter

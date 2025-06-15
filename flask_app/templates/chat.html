@@ -32,7 +32,7 @@
     appendToChatList('Human', message);
     inputChat.value = '';
     $.ajax({
-      url: '{{ url_for("user.chat") }}',
+      url: '{{ url_for("chat") }}',
       type: 'POST',
       dataType: "json",
       data: {
